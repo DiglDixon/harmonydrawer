@@ -15,14 +15,20 @@ import codeanticode.tablet.*;
 
 
 ClusterLayer cClusterLayer;
-PGraphics sk; // our sketch PGraphics
+PGraphics sk, ui, fx;
 PImage reference;
 
 Tablet tablet;
+Pen cPen;
+Time time;
+Physics physics;
 
 void setup() {
-    size(600, 600, P2D);
+    size(1200, 800, P2D);
+    noCursor();
+    ui = createGraphics(width, height, P2D);
     sk = createGraphics(width, height, P2D);
+    fx = createGraphics(width, height, P2D);
     sk.beginDraw();
     sk.strokeCap(ROUND);
     sk.strokeJoin(ROUND);
@@ -34,19 +40,33 @@ void setup() {
     // This is lovely, but a massive resource hog.
     pixelDensity(displayDensity());
     background(255);
+    time = new Time();
+    cPen = new Pen("Steve the Pen");
+    physics = new Physics("Phill the Phriendly Physics System");
 }
 
 
 void draw() {
     background(255);
+    refreshCanvases();
+    cPen.update();
     image(reference, 0, 0);
     image(sk, 0, 0, width, height);
+    ui.beginDraw();
+    cPen.display(ui);
+    ui.endDraw();
+    image(ui, 0, 0, width, height);
+}
+
+void refreshCanvases(){
+    ui.clear();
+    fx.clear();
 }
 
 boolean mouseDown = false;
 
 float getPenPressure(){
-    return tablet.getPressure()+0.1*5;
+    return tablet.getPressure();
     //return 2;
 }
 
@@ -56,12 +76,12 @@ void mousePressed() {
 }
 
 void mouseDragged() {
-    println("Pressure: "+getPenPressure());
+    float pressure = getPenPressure();
     if(!mouseDown){
         println("mouseDragged fired before mousePressed");
         return;
     }
-    cClusterLayer.addPoint(mouseX, mouseY, getPenPressure());
+    cClusterLayer.addPoint(mouseX, mouseY, pressure);
     // background(255);
     cClusterLayer.drawRecent();
 }
