@@ -8,6 +8,10 @@ import codeanticode.tablet.*;
  So, redraw when necessary.
  
  Could go screenspace hitboxing. Not necessary for the moment, but would help performance a lot if we start to chug.
+
+ To do:
+        Turn Pens into Physicals (non-kinetic, caching)
+
  */
 
 
@@ -49,13 +53,21 @@ void setup() {
 void draw() {
     background(255);
     refreshCanvases();
+
     cPen.update();
+    physics.update();
+
     image(reference, 0, 0);
     image(sk, 0, 0, width, height);
+    
     ui.beginDraw();
     cPen.display(ui);
     ui.endDraw();
+    fx.beginDraw();
+    physics.display(fx);
+    fx.endDraw();
     image(ui, 0, 0, width, height);
+    image(fx, 0, 0, width, height);
 }
 
 void refreshCanvases(){
@@ -80,6 +92,7 @@ void mousePressed() {
 }
 
 void mouseDragged() {
+    cPen.mouseDragged();
     float pressure = getPenPressure();
     if(!mouseDown){
         println("mouseDragged fired before mousePressed");

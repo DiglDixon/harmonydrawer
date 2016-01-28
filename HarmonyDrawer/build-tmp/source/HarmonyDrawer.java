@@ -17,7 +17,6 @@ import java.io.IOException;
 public class HarmonyDrawer extends PApplet {
 
 
-// hello 4
 
 /* 
  Plan.
@@ -28,7 +27,9 @@ public class HarmonyDrawer extends PApplet {
  
  Could go screenspace hitboxing. Not necessary for the moment, but would help performance a lot if we start to chug.
 
- Hello small update
+ To do:
+        Turn Pens into Physicals (non-kinetic, caching)
+
  */
 
 
@@ -70,13 +71,21 @@ public void setup() {
 public void draw() {
     background(255);
     refreshCanvases();
+
     cPen.update();
+    physics.update();
+
     image(reference, 0, 0);
     image(sk, 0, 0, width, height);
+    
     ui.beginDraw();
     cPen.display(ui);
     ui.endDraw();
+    fx.beginDraw();
+    physics.display(fx);
+    fx.endDraw();
     image(ui, 0, 0, width, height);
+    image(fx, 0, 0, width, height);
 }
 
 public void refreshCanvases(){
@@ -101,6 +110,7 @@ public void mousePressed() {
 }
 
 public void mouseDragged() {
+    cPen.mouseDragged();
     float pressure = getPenPressure();
     if(!mouseDown){
         println("mouseDragged fired before mousePressed");
@@ -301,13 +311,25 @@ class ClusterPoint {
     }
 }
 
+PVector sparkGravity = new PVector(0, 0.5f);
 
 class Spark extends Physical{
 
 	String name;
 
-	public Spark(PVector position, PVector heading){
+	public Spark(PVector startPosition){
 		name = getRandomPersonName();
+		println("Setting spark position: "+startPosition.x+" "+startPosition.y);
+		this.position.x = startPosition.x;
+		this.position.y = startPosition.y;
+		mass = random(1, 3);
+		gravity = sparkGravity;
+		addForce(Utils.randomSignedVector().mult(5));
+	}
+
+	protected void update(){
+		super.update();
+		life-=0.05f/mass;
 	}
 
 }
@@ -480,6 +502,7 @@ class Pen{
 
 	public Pen(String name){
 		this.name = name;
+		Utils_AS.initialiseArraySample(positionSamples);
 	}
 
 	public PVector getPosition(){
@@ -510,11 +533,11 @@ class Pen{
 	public void mouseDragged(){
 	    pressure = getPenPressure();
 
-	    if(pressure>0.98f){
-
-	    	int sparkCount = (int) random(0, 4);
+	    if(pressure>0.6f){
+	    	int maxSparks = (int) map(pressure, 0.6f, 1, 0, 5);
+	    	int sparkCount = (int) random(0, maxSparks);
 	    	for(int k = 0; k<sparkCount; k++){
-	    		// physics.add()
+	    		physics.addPhysical(new Spark(position));
 	    	}
 
 	    }
@@ -529,7 +552,7 @@ class Pen{
 class Physics{
 
 	String name;
-	ArrayList physicals;
+	ArrayList physicals = new ArrayList<Physical>();
 
 	public Physics(String name){
 		this.name = name;
@@ -564,13 +587,15 @@ class Physics{
 
 class Physical{
 
-	PVector position = new PVector();
-	PVector velocity = new PVector();
-	PVector gravity =new PVector(0, -0.1f);
+	protected PVector position = new PVector();
+	protected PVector velocity = new PVector();
+	protected PVector gravity =new PVector(0, 0.15f);
 	protected float mass = 1;
 	protected float invMass = 1;
 	protected float life = 1;
 	Physics parentSystem;
+
+	private boolean kinetic = true;
 
 	public Physical(){}
 
@@ -588,9 +613,18 @@ class Physical{
 		velocity.add(f);
 	}
 
+	protected void setKinetic(boolean v){
+		kinetic  = v;
+	}
+
 	protected void update(){
-		velocity.add(gravity);
-		position.add(velocity);
+		if(kinetic){
+			velocity.add(gravity);
+			position.add(velocity);
+		}
+		if(life<=0){
+			kill();
+		}
 	}
 
 	protected void kill(){
@@ -598,8 +632,8 @@ class Physical{
 	}
 
 	protected void display(PGraphics c){
-		c.strokeWeight(mass*2);
-		c.stroke(0);
+		c.strokeWeight(mass);
+		c.stroke(0, 255*life*life);
 		c.point(position.x, position.y);
 	}
 
@@ -607,12 +641,12 @@ class Physical{
 
 class CachingPhysical{
 
-	PVector[] positionCache;
+	PVector[] positionSamples;
 
-	public CachingPhysical(int cacheDepth){
-		positionCache = new PVector[cacheDepth];
+	public CachingPhysical(int samplingDepth){
+		positionSamples = new PVector[samplingDepth];
+		Utils_AS.initialiseArraySample(positionSamples);
 	}
-
 
 }
 

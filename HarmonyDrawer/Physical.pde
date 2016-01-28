@@ -2,7 +2,7 @@
 class Physics{
 
 	String name;
-	ArrayList physicals;
+	ArrayList physicals = new ArrayList<Physical>();
 
 	public Physics(String name){
 		this.name = name;
@@ -37,13 +37,15 @@ class Physics{
 
 class Physical{
 
-	PVector position = new PVector();
-	PVector velocity = new PVector();
-	PVector gravity =new PVector(0, -0.1);
+	protected PVector position = new PVector();
+	protected PVector velocity = new PVector();
+	protected PVector gravity =new PVector(0, 0.15);
 	protected float mass = 1;
 	protected float invMass = 1;
 	protected float life = 1;
 	Physics parentSystem;
+
+	private boolean kinetic = true;
 
 	public Physical(){}
 
@@ -61,9 +63,18 @@ class Physical{
 		velocity.add(f);
 	}
 
+	protected void setKinetic(boolean v){
+		kinetic  = v;
+	}
+
 	protected void update(){
-		velocity.add(gravity);
-		position.add(velocity);
+		if(kinetic){
+			velocity.add(gravity);
+			position.add(velocity);
+		}
+		if(life<=0){
+			kill();
+		}
 	}
 
 	protected void kill(){
@@ -71,8 +82,8 @@ class Physical{
 	}
 
 	protected void display(PGraphics c){
-		c.strokeWeight(mass*2);
-		c.stroke(0);
+		c.strokeWeight(mass);
+		c.stroke(0, 255*life*life);
 		c.point(position.x, position.y);
 	}
 
@@ -80,11 +91,11 @@ class Physical{
 
 class CachingPhysical{
 
-	PVector[] positionCache;
+	PVector[] positionSamples;
 
-	public CachingPhysical(int cacheDepth){
-		positionCache = new PVector[cacheDepth];
+	public CachingPhysical(int samplingDepth){
+		positionSamples = new PVector[samplingDepth];
+		Utils_AS.initialiseArraySample(positionSamples);
 	}
-
 
 }

@@ -11,6 +11,7 @@ class Pen{
 
 	public Pen(String name){
 		this.name = name;
+		Utils_AS.initialiseArraySample(positionSamples);
 	}
 
 	public PVector getPosition(){
@@ -41,11 +42,11 @@ class Pen{
 	void mouseDragged(){
 	    pressure = getPenPressure();
 
-	    if(pressure>0.98){
-
-	    	int sparkCount = (int) random(0, 4);
+	    if(pressure>0.6){
+	    	int maxSparks = (int) map(pressure, 0.6, 1, 0, 5);
+	    	int sparkCount = (int) random(0, maxSparks);
 	    	for(int k = 0; k<sparkCount; k++){
-	    		// physics.add()
+	    		physics.addPhysical(new Spark(position));
 	    	}
 
 	    }
