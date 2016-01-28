@@ -1,4 +1,4 @@
-//import codeanticode.tablet.*;
+import codeanticode.tablet.*;
 
 
 /* 
@@ -18,7 +18,7 @@ ClusterLayer cClusterLayer;
 PGraphics sk; // our sketch PGraphics
 PImage reference;
 
-//Tablet tablet;
+Tablet tablet;
 
 void setup() {
     size(600, 600, P2D);
@@ -29,7 +29,7 @@ void setup() {
     sk.background(0, 0, 0, 0);
     sk.endDraw();
     reference = loadImage("./data/ref.jpg");
-    //tablet = new Tablet(this); 
+    tablet = new Tablet(this); 
     cClusterLayer = new ClusterLayer();
     // This is lovely, but a massive resource hog.
     pixelDensity(displayDensity());
@@ -46,8 +46,8 @@ void draw() {
 boolean mouseDown = false;
 
 float getPenPressure(){
-    //return tablet.getPressure()+0.1*5;
-    return 2;
+    return tablet.getPressure()+0.1*5;
+    //return 2;
 }
 
 void mousePressed() {
@@ -56,6 +56,7 @@ void mousePressed() {
 }
 
 void mouseDragged() {
+    println("Pressure: "+getPenPressure());
     if(!mouseDown){
         println("mouseDragged fired before mousePressed");
         return;

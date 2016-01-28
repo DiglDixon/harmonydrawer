@@ -48,7 +48,7 @@ class Cluster {
                 float cull = 0.75;
                 if(d<800){
                     sk.stroke(0, 5);
-                    sk.strokeWeight(1);
+                    sk.strokeWeight(iPoint.w);
                     sk.line(x+dx2*cull, y+dy2*cull, iPoint.x+dx*cull, iPoint.y+dy*cull);
                 }
             }
