@@ -1,5 +1,4 @@
 import codeanticode.tablet.*;
-// hello 4
 
 /* 
  Plan.
@@ -9,8 +8,6 @@ import codeanticode.tablet.*;
  So, redraw when necessary.
  
  Could go screenspace hitboxing. Not necessary for the moment, but would help performance a lot if we start to chug.
-
- Hello small update
  */
 
 
@@ -26,6 +23,9 @@ Physics physics;
 void setup() {
     size(1200, 800, P2D);
     noCursor();
+    Utils.processing = this;
+    Utils_AS.processing = this;
+    // Utlis_AS.processing = this;
     ui = createGraphics(width, height, P2D);
     sk = createGraphics(width, height, P2D);
     fx = createGraphics(width, height, P2D);
@@ -59,8 +59,12 @@ void draw() {
 }
 
 void refreshCanvases(){
+    ui.beginDraw();
     ui.clear();
+    ui.endDraw();
+    fx.beginDraw();
     fx.clear();
+    fx.endDraw();
 }
 
 boolean mouseDown = false;

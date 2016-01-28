@@ -10,6 +10,11 @@ class Physics{
 
 	public void addPhysical(Physical p){
 		physicals.add(p);
+		p.setParentSystem(this);
+	}
+
+	public void removePhysical(Physical p){
+		physicals.remove(p);
 	}
 
 	public void update(){
@@ -24,7 +29,7 @@ class Physics{
 		Physical p;
 		for(int k = 0; k<physicals.size();k++){
 			p = (Physical) physicals.get(k);
-			p.display();
+			p.display(c);
 		}
 	}
 
@@ -37,9 +42,13 @@ class Physical{
 	PVector gravity =new PVector(0, -0.1);
 	protected float mass = 1;
 	protected float invMass = 1;
+	protected float life = 1;
+	Physics parentSystem;
 
-	public Physical(){
+	public Physical(){}
 
+	public void setParentSystem(Physics s){
+		parentSystem = s;
 	}
 
 	protected void setMass(float m){
@@ -57,10 +66,25 @@ class Physical{
 		position.add(velocity);
 	}
 
+	protected void kill(){
+		parentSystem.removePhysical(this);
+	}
+
 	protected void display(PGraphics c){
 		c.strokeWeight(mass*2);
 		c.stroke(0);
 		c.point(position.x, position.y);
 	}
+
+}
+
+class CachingPhysical{
+
+	PVector[] positionCache;
+
+	public CachingPhysical(int cacheDepth){
+		positionCache = new PVector[cacheDepth];
+	}
+
 
 }

@@ -44,8 +44,8 @@ class Pen{
 	    if(pressure>0.98){
 
 	    	int sparkCount = (int) random(0, 4);
-	    	for(int k = 0 k<sparkCount; k++){
-	    		
+	    	for(int k = 0; k<sparkCount; k++){
+	    		// physics.add()
 	    	}
 
 	    }

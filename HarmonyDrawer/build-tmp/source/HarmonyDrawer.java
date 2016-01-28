@@ -44,6 +44,9 @@ Physics physics;
 public void setup() {
     
     noCursor();
+    Utils.processing = this;
+    Utils_AS.processing = this;
+    // Utlis_AS.processing = this;
     ui = createGraphics(width, height, P2D);
     sk = createGraphics(width, height, P2D);
     fx = createGraphics(width, height, P2D);
@@ -77,8 +80,12 @@ public void draw() {
 }
 
 public void refreshCanvases(){
+    ui.beginDraw();
     ui.clear();
+    ui.endDraw();
+    fx.beginDraw();
     fx.clear();
+    fx.endDraw();
 }
 
 boolean mouseDown = false;
@@ -295,6 +302,173 @@ class ClusterPoint {
 }
 
 
+class Spark extends Physical{
+
+	String name;
+
+	public Spark(PVector position, PVector heading){
+		name = getRandomPersonName();
+	}
+
+}
+public String getRandomPersonName(){
+	return peopleNames[Utils.randomIndex(peopleNames.length)];
+}
+
+String[] peopleNames = {
+"Isaiah",
+"Jamee",
+"Aracelis",
+"Jodee",
+"Trudy",
+"Keva",
+"Brenna",
+"Ginette",
+"Bettye",
+"Rubye",
+"Myesha",
+"Onita",
+"Ashly",
+"Reagan",
+"Sid",
+"Delorse",
+"Peter",
+"Colby",
+"Corey",
+"Ila",
+"Nanette",
+"Delphia",
+"Emelina",
+"Sunny",
+"Hank",
+"Brooks",
+"Adrien",
+"Timmy",
+"Apryl",
+"Beatrice",
+"Elvira",
+"Robbyn",
+"Tiffani",
+"Fidel",
+"Tawanda",
+"Xiomara",
+"Crystal",
+"Marhta",
+"Sina",
+"Jannie",
+"Codi",
+"Shirlene",
+"Justina",
+"Annabelle",
+"Karolyn",
+"Brandi",
+"Loida",
+"Gino",
+"Andrea",
+"Bradley",
+"Halina",
+"Jeanna",
+"Tonia",
+"Elenora",
+"Heidi",
+"Leila",
+"Janey",
+"Marcela",
+"Rafaela",
+"Shauna",
+"Dortha",
+"Eric",
+"Barbra",
+"Mattie",
+"Cindy",
+"Lajuana",
+"Maragret",
+"Beulah",
+"Bonnie",
+"Jacquline",
+"Harold",
+"Chana",
+"Karla",
+"Therese",
+"Tomiko",
+"Parthenia",
+"Earline",
+"Toccara",
+"Emil",
+"Particia",
+"Stefania",
+"Tobias",
+"Davida",
+"Marleen",
+"Barney",
+"Adena",
+"Fumiko",
+"Terrence",
+"Randolph",
+"Thu",
+"Niesha",
+"Dwight",
+"Karen",
+"Ronna",
+"Mellisa",
+"Raul",
+"Stacey",
+"Marguerite",
+"Tawny",
+"Jetta",
+"Sacha",
+"Bruno",
+"Arlean",
+"Joel",
+"Lucile",
+"Cherelle",
+"Anabel",
+"Karisa",
+"Jewel",
+"Rosalia",
+"Palmer",
+"Celena",
+"Von",
+"Mikel",
+"Markita",
+"Jan",
+"Nelle",
+"Gena",
+"Dolores",
+"Devon",
+"Kylee",
+"Tiffiny",
+"Shonna",
+"Rosette",
+"Sanford",
+"Millie",
+"Fawn",
+"Cesar",
+"Jessia",
+"Ellen",
+"Synthia",
+"Lucius",
+"Nolan",
+"Dona",
+"Jasper",
+"Cordia",
+"Lauran",
+"Orval",
+"Garth",
+"Susana",
+"Dia",
+"Irwin",
+"Glynda",
+"Ilana",
+"Annett",
+"Sharlene",
+"Rickie",
+"Magdalena",
+"Verda",
+"Virgen"
+};
+
+
 class Pen{
 
 	String name;
@@ -314,9 +488,6 @@ class Pen{
 
 	public void display(PGraphics c){
 		displayDefault(c);
-	    if(pressure>0.98f){
-	    	displaySparks(c);
-	    }
 	}
 
 	private void displayDefault(PGraphics c){
@@ -338,14 +509,19 @@ class Pen{
 
 	public void mouseDragged(){
 	    pressure = getPenPressure();
+
+	    if(pressure>0.98f){
+
+	    	int sparkCount = (int) random(0, 4);
+	    	for(int k = 0; k<sparkCount; k++){
+	    		// physics.add()
+	    	}
+
+	    }
 	}
 
 	public void mouseReleased(){
 		pressure = 0;
-	}
-
-	private void displaySparks(){
-
 	}
 
 }
@@ -361,6 +537,11 @@ class Physics{
 
 	public void addPhysical(Physical p){
 		physicals.add(p);
+		p.setParentSystem(this);
+	}
+
+	public void removePhysical(Physical p){
+		physicals.remove(p);
 	}
 
 	public void update(){
@@ -375,7 +556,7 @@ class Physics{
 		Physical p;
 		for(int k = 0; k<physicals.size();k++){
 			p = (Physical) physicals.get(k);
-			p.display();
+			p.display(c);
 		}
 	}
 
@@ -388,9 +569,13 @@ class Physical{
 	PVector gravity =new PVector(0, -0.1f);
 	protected float mass = 1;
 	protected float invMass = 1;
+	protected float life = 1;
+	Physics parentSystem;
 
-	public Physical(){
+	public Physical(){}
 
+	public void setParentSystem(Physics s){
+		parentSystem = s;
 	}
 
 	protected void setMass(float m){
@@ -408,11 +593,26 @@ class Physical{
 		position.add(velocity);
 	}
 
+	protected void kill(){
+		parentSystem.removePhysical(this);
+	}
+
 	protected void display(PGraphics c){
 		c.strokeWeight(mass*2);
 		c.stroke(0);
 		c.point(position.x, position.y);
 	}
+
+}
+
+class CachingPhysical{
+
+	PVector[] positionCache;
+
+	public CachingPhysical(int cacheDepth){
+		positionCache = new PVector[cacheDepth];
+	}
+
 
 }
 
@@ -481,6 +681,189 @@ class Time{
 
 
 }
+
+static class Utils{
+
+	public static PApplet processing;
+	// __________________ MATHS __________________ //
+
+	// Used to avoid square rooting with distance checks.
+	public static boolean checkDistSq(PVector pos1, PVector pos2, float thres){
+		return ( (pos2.x-pos1.x)*(pos2.x-pos1.x) + (pos2.y-pos1.y)*(pos2.y-pos1.y) + (pos2.z-pos1.z)*(pos2.z-pos1.z) < thres*thres);
+	}
+	public static boolean checkDistSq(float x1, float y1, float x2, float y2, float thres){
+		return(	(x2-x1)*(x2-x1) + (y2-y1)*(y2-y1) < thres*thres );
+	}
+
+	// These weeds out negative modulos
+	public static int safeMod(int num, int mod){
+		while(num<0){
+			num+=mod;
+		}
+		return num%mod;
+	}
+	public static float safeMod(float num, int mod){
+		while(num<0){
+			num+=mod;
+		}
+		return num%mod;
+	}
+
+	public static int randomIndex(int upper){
+		return randomIndex(0, upper);
+	}
+
+	public static int randomIndex(int lower, int upper){
+		return processing.round( processing.random(lower, upper)-0.5f );
+	}
+
+	// __________________ VECTORS __________________ //
+	// A convenience function for drawing vector-to-vector.
+	// Which happens a lot.
+	public static void vectorLine(PVector v1, PVector v2, PGraphics c){
+		c.line(v1.x, v1.y, v2.x, v2.y);
+	}
+
+	public static PVector randomVector(){
+		return new PVector(processing.random(1), processing.random(1), processing.random(1));
+	}
+
+	public static PVector randomSignedVector(){
+		return new PVector(processing.random(-1, 1), processing.random(-1, 1), processing.random(-1, 1));
+	}
+
+
+} // END UTILS
+
+/* __________________________________ ARRAY_AVERAGING __________________________________ */
+
+// ** This section has been combined into the SampleArray classes. **
+
+// These assume values are being fed in by a modulo against the processing.frameCount
+// Oh look! addArraySample() is a great way to do this ;)
+
+static class Utils_AS{
+
+    public static PApplet processing;
+
+    public static void initialiseArraySample(PVector arr[]){
+    	for(int k = 0; k<arr.length;k++){
+    		arr[k] = new PVector();
+    	}
+    }
+
+    public static void initialiseArraySample(PVector arr[], PVector startingValue){
+    	for(int k = 0; k<arr.length;k++){
+    		arr[k] = new PVector();
+    		arr[k].set(startingValue);
+    	}
+    }
+
+    public static void addArraySample(PVector[] arr, PVector value){
+    	arr[processing.frameCount%arr.length].set(value);
+    }
+
+    public static PVector getArrayAverage(PVector[] arr){
+    	return getArrayAverage(arr, 0);
+    }
+
+    public static PVector getArrayAverage(PVector[] arr, int offset){
+
+        PVector accum = new PVector();
+        // The offset position
+        int o = Utils.safeMod((processing.frameCount+offset), arr.length);
+        // The current addition frame
+        int c = processing.frameCount%arr.length;
+        int t = 0; // We'll use this to count what we need to average by
+
+        for(int k = 0; k<arr.length; k++){
+
+            if(arr[k]==null) // we ignore nulls
+                continue;
+            if(offset!=0){
+                if(c>o){ // If standard order
+                    if(k>o && k<c) // cull inside
+                        continue;
+                }else{ // Else if wrapping
+                    if(k<c || k>o) // cull outside
+                        continue;
+                }
+            }
+
+            accum.add(arr[k]);
+            t++;
+        }
+        return PVector.div(accum, t);
+    }
+
+    public static PVector getArrayAverageVelocity(PVector[] arr){
+    	return getArrayAverage(arr, 0);
+    }
+
+    public static PVector getArrayAverageVelocity(PVector[] arr, int offset){
+        PVector thisC = new PVector();
+        PVector prev = new PVector();
+        PVector accum = new PVector();
+        // The offset frame
+        int o = Utils.safeMod((processing.frameCount+offset), arr.length);
+        // The current addition frame
+        int c = processing.frameCount%arr.length;
+        int p = Utils.safeMod(c-1, arr.length);
+        int end = (processing.frameCount+1)%arr.length;
+        int t = 0;
+
+        for(int k = 0; k<arr.length; k++){
+        	if(k==end)
+        		continue; // Ignore the last value (it has no previous)
+            if(arr[k]==null || arr[p]==null) // Ignore nulls
+                continue;
+            if(offset!=0){
+                if(c>o){ // If standard order
+                    if(k>o && k<c) // cull inside
+                        continue;
+                }else{ // Else if wrapping
+                    if(k<c || k>o) // cull outside
+                        continue;
+                }
+            }
+            prev = arr[p];
+            thisC = arr[k];
+            accum.add(PVector.sub(thisC,prev));
+            t++;
+        }
+        return PVector.div(accum, t);
+    }
+
+
+    public static float getArrayAverage(float[] arr, int offset){
+
+        float accum = 0;
+        // The offset position
+        int o = Utils.safeMod((processing.frameCount+offset), arr.length);
+        // The current addition frame
+        int c = processing.frameCount%arr.length;
+        int t = 0; // We'll use this to count what we need to average by
+
+        for(int k = 0; k<arr.length; k++){
+
+            if(offset!=0){
+                if(c>o){ // If standard order
+                    if(k>o && k<c) // cull inside
+                        continue;
+                }else{ // Else if wrapping
+                    if(k<c || k>o) // cull outside
+                        continue;
+                }
+            }
+
+            accum+=arr[k];
+            t++;
+        }
+        return accum/t;
+    }
+}
+
+
     public void settings() {  size(1200, 800, P2D);  pixelDensity(displayDensity()); }
     static public void main(String[] passedArgs) {
         String[] appletArgs = new String[] { "HarmonyDrawer" };
